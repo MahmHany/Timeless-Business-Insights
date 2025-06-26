@@ -96,12 +96,4 @@ This project explores a global business dataset to uncover the patterns behind b
 
 Understanding what helps a business endure over centuries offers valuable insights for entrepreneurs, investors, and economic historians. This analysis uncovers patterns in geography, industry, and founding history that define business longevity.
 
----
 
-## 📎 License
-
-This project is for educational and analytical purposes. Feel free to fork and build upon it!
-
----
-
-Let me know if you'd like a version with badges, links to visualizations, or sample SQL/Code blocks included.
