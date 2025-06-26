@@ -1,99 +1,110 @@
-# 🕰️ Timeless Business Insights – Age, Geography, and Industry Endurance
+# 🏛️ Business Longevity & Economic Coverage – A Global SQL Analysis
 
-This project explores a global business dataset to uncover the patterns behind business longevity. Using SQL and Python (pandas), it identifies the oldest businesses across continents, highlights data gaps, and examines which business categories tend to stand the test of time.
+This project investigates business longevity across continents, identifies gaps in business data, and reveals which categories stand the test of time. Through SQL queries, we uncover the **oldest registered businesses**, **highlight countries without data**, and **analyze enduring business sectors**.
 
 ---
 
 ## 📌 Project Objectives
 
-- ✅ Identify the **oldest business on each continent**
-- ✅ Count **how many countries per continent lack business data**, including newly added businesses
-- ✅ Determine **which business categories last the longest**, grouped by continent
+- Determine the **oldest businesses** on each continent  
+- Identify **countries lacking business registration data**, even after including new sources  
+- Uncover which **business categories** have survived the longest historically  
 
 ---
 
-## 📁 Data Sources
+## 📁 Data Source
 
-- **`countries`** – Continent and country mapping  
-  Columns: `country_code`, `country_name`, `continent`
+Relational database including the following tables:
 
-- **`businesses`** – Historical business records  
-  Columns: `business`, `country_code`, `year_founded`, `category_code`
-
-- **`new_businesses`** – Supplemental dataset for newer businesses  
-  Columns: Same as `businesses`
-
-- **`categories`** – Maps category codes to labels  
-  Columns: `category_code`, `category`
+- `businesses`: Core business data (name, founding year, country)  
+- `new_businesses`: Supplementary newer business registrations  
+- `countries`: Contains country names, continent, and codes  
+- `categories`: Business sector/category info  
 
 ---
 
-## 🔍 Key Features
+## 🔍 Key Features & SQL Queries
 
-### 🏆 Oldest Business per Continent
+### 🏆 1. Oldest Business Per Continent  
+**Query Name**: `oldest_business_by_continent`
 
-- Joined `businesses` with `countries`
-- Extracted the **oldest business per continent**
-- Output stored in:  
-  **`oldest_business_continent`**  
-  _Columns: `continent`, `country`, `business`, `year_founded`_
-
-### ❌ Missing Business Data by Continent
-
-- Counted countries **with no business records**
-- Compared results **before and after including `new_businesses`**
-- Output stored in:  
-  **`count_missing`**  
-  _Columns: `continent`, `countries_without_businesses`_
-
-### 🧭 Enduring Categories by Continent
-
-- Joined all datasets and grouped by `continent` and `category`
-- Found **earliest `year_founded`** per group
-- Output stored in:  
-  **`oldest_by_continent_category`**  
-  _Columns: `continent`, `category`, `year_founded`_
+```sql
+SELECT 
+  continent, 
+  country, 
+  business, 
+  year_founded 
+FROM (
+  SELECT 
+    continent, 
+    country, 
+    business, 
+    year_founded,
+    ROW_NUMBER() OVER(PARTITION BY continent ORDER BY year_founded) AS oldest_business
+  FROM businesses b
+  JOIN countries c ON b.country_code = c.country_code
+) AS sub
+WHERE oldest_business = 1;
+```
 
 ---
 
-## 📊 Sample Outputs
+### 🌍 2. Data Coverage Gaps by Continent  
+**Query Name**: `countries_missing_business_data`
 
-### 🌍 Oldest Business Example
+```sql
+SELECT 
+  c.continent,
+  COUNT(DISTINCT c.country_code) AS countries_without_businesses
+FROM countries c
+LEFT JOIN (
+  SELECT country_code FROM businesses
+  UNION
+  SELECT country_code FROM new_businesses
+) b ON c.country_code = b.country_code
+WHERE b.country_code IS NULL
+GROUP BY c.continent;
+```
 
-| Continent | Country | Business                     | Year Founded |
-|-----------|---------|------------------------------|--------------|
-| Europe    | Austria | St. Peter Stifts Kulinarium  | 803          |
+---
 
-### 🧮 Missing Business Data
+### 🕰️ 3. Most Enduring Business Categories  
+**Query Name**: `longest_surviving_categories_by_continent`
 
-| Continent | Countries Without Businesses |
-|-----------|------------------------------|
-| Africa    | 22                           |
-| Asia      | 11                           |
+```sql
+SELECT 
+  continent, 
+  category, 
+  MIN(year_founded) AS year_founded
+FROM businesses b 
+JOIN countries c ON b.country_code = c.country_code
+JOIN categories t ON b.category_code = t.category_code
+GROUP BY continent, category
+ORDER BY continent, category;
+```
 
-### 🏛️ Top Enduring Categories
+---
 
-| Continent | Category     | Year Founded |
-|-----------|--------------|--------------|
-| Asia      | Hospitality  | 705          |
-| Europe    | Manufacturing| 803          |
+## 📊 Sample Insights
+
+- 🕵️ Oldest known businesses include multi-century operations in Europe and Asia  
+- 🌐 Several continents still have **untracked or under-reported countries**  
+- 🏺 Categories such as **textiles, food production**, and **publishing** show impressive longevity  
 
 ---
 
 ## 💻 Tech Stack
 
-- **Python** (pandas) – Data manipulation and aggregation
-- **SQL** – Data extraction and joining
-- **Jupyter Notebook** – Analysis and prototyping environment
-- **DataFrames Used**:
-  - `oldest_business_continent`
-  - `count_missing`
-  - `oldest_by_continent_category`
+- **SQL** (PostgreSQL / MySQL) – Core querying and analysis  
+- **Relational Schema** – Structured business & country data  
+- **Optional Visualization** – Power BI or Tableau for dashboards  
 
 ---
 
 ## 🧠 Why This Project?
 
-Understanding what helps a business endure over centuries offers valuable insights for entrepreneurs, investors, and economic historians. This analysis uncovers patterns in geography, industry, and founding history that define business longevity.
+Understanding historical business resilience and economic data gaps can:
 
-
+- Support **global economic studies**  
+- Inform **policy and development programs**  
+- Guide **business historians and researchers** on long-term industry sustainability
